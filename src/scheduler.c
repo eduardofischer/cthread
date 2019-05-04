@@ -104,13 +104,13 @@ TCB_t *popPriorityThread(PRIO_QUEUE_t *queue){
 
     // Verifica se existe alguma thread de prioridade alta
     if(FirstFila2(queue->high) == 0){
-        thread = GetAtAntIteratorFila2(queue->high);
+        thread = GetAtIteratorFila2(queue->high);
         DeleteAtIteratorFila2(queue->high);
     } else if(FirstFila2(queue->medium) == 0){
-        thread = GetAtAntIteratorFila2(queue->medium);
+        thread = GetAtIteratorFila2(queue->medium);
         DeleteAtIteratorFila2(queue->medium);
     } else if(FirstFila2(queue->low) == 0){
-        thread = GetAtAntIteratorFila2(queue->low);
+        thread = GetAtIteratorFila2(queue->low);
         DeleteAtIteratorFila2(queue->low);
     } else
         return NULL;
@@ -131,7 +131,9 @@ int scheduleNewThread() {
 
 int blockThread(){
     // Identifica a thread que está em execução
-    TCB_t *thread = GetAtAntIteratorFila2(runningQueue);
+    TCB_t *thread = malloc(sizeof(TCB_t));
+    FirstFila2(runningQueue);
+    thread = GetAtIteratorFila2(runningQueue);
 
     if(thread == NULL)
         return -1;
@@ -146,10 +148,10 @@ int blockThread(){
 
 int unlockThread(int tid) {
     // Percorre a fila de threads bloqueadas
-    TCB_t *thread;
+    TCB_t *thread = malloc(sizeof(TCB_t));
     FirstFila2(blockedQueue);
     do{
-        thread = (TCB_t*) GetAtAntIteratorFila2(blockedQueue);
+        thread = (TCB_t*) GetAtIteratorFila2(blockedQueue);
         if(thread == NULL)
             break;
         if(thread->tid == tid){
@@ -167,17 +169,18 @@ int unlockThread(int tid) {
 void killThread() {
     // Identifica a thread que está em execução
     TCB_t *thread = malloc(sizeof(TCB_t));
-    thread = (TCB_t*) GetAtAntIteratorFila2(runningQueue);
+    FirstFila2(runningQueue);
+    thread = (TCB_t*) GetAtIteratorFila2(runningQueue);
     // Remove a thread da fila "executando"
     DeleteAtIteratorFila2(runningQueue);
     // Atualiza o estado da thread
     thread->state = PROCST_TERMINO;
     
     // Verifica se existe alguma thread esperando pela thread finalizada
-    JOIN_PAIR_t *joinPair;
+    JOIN_PAIR_t *joinPair = malloc(sizeof(JOIN_PAIR_t));
     FirstFila2(joinQueue);
     do{
-        joinPair = (JOIN_PAIR_t*) GetAtAntIteratorFila2(joinQueue);
+        joinPair = (JOIN_PAIR_t*) GetAtIteratorFila2(joinQueue);
         if(joinPair == NULL)
             break;
         if(joinPair->tid_running_thread == thread->tid){
@@ -191,7 +194,9 @@ void killThread() {
 }
 
 int setRunningThreadPriority(int prio){
-    TCB_t *thread = GetAtAntIteratorFila2(runningQueue);
+    TCB_t *thread = malloc(sizeof(TCB_t));
+    FirstFila2(runningQueue);
+    thread = GetAtIteratorFila2(runningQueue);
 
     if(thread == NULL)
         return -1;
@@ -201,7 +206,9 @@ int setRunningThreadPriority(int prio){
 }
 
 int yield(){
-    TCB_t *thread = GetAtAntIteratorFila2(runningQueue);
+    TCB_t *thread = malloc(sizeof(TCB_t));
+    FirstFila2(runningQueue);
+    thread = GetAtIteratorFila2(runningQueue);
 
     if(thread == NULL)
         return -1;
@@ -219,10 +226,10 @@ int yield(){
 
 TCB_t *findReadyThreadByTID(int tid){
     // Percorre a fila de prioridade alta
-    TCB_t *thread;
+    TCB_t *thread = malloc(sizeof(TCB_t));
     FirstFila2(readyQueue->high);
     do{
-        thread = (TCB_t*) GetAtAntIteratorFila2(readyQueue->high);
+        thread = (TCB_t*) GetAtIteratorFila2(readyQueue->high);
         if(thread == NULL)
             break;
         if(thread->tid == tid){
@@ -234,7 +241,7 @@ TCB_t *findReadyThreadByTID(int tid){
     // Percorre a fila de prioridade média
     FirstFila2(readyQueue->medium);
     do{
-        thread = (TCB_t*) GetAtAntIteratorFila2(readyQueue->medium);
+        thread = (TCB_t*) GetAtIteratorFila2(readyQueue->medium);
         if(thread == NULL)
             break;
         if(thread->tid == tid){
@@ -246,7 +253,7 @@ TCB_t *findReadyThreadByTID(int tid){
     // Percorre a fila de prioridade baixa
     FirstFila2(readyQueue->low);
     do{
-        thread = (TCB_t*) GetAtAntIteratorFila2(readyQueue->low);
+        thread = (TCB_t*) GetAtIteratorFila2(readyQueue->low);
         if(thread == NULL)
             break;
         if(thread->tid == tid){
@@ -261,7 +268,9 @@ TCB_t *findReadyThreadByTID(int tid){
 
 int waitForThread(int tid){
     // Thread em execução
-    TCB_t *blockedThread = GetAtAntIteratorFila2(runningQueue);
+    TCB_t *blockedThread = malloc(sizeof(TCB_t));
+    FirstFila2(runningQueue);
+    blockedThread = GetAtIteratorFila2(runningQueue);
 
     // Verifica se a thread a ser bloqueada existe
     if(blockedThread == NULL)
@@ -272,10 +281,10 @@ int waitForThread(int tid){
         return -1;
 
     // Verifica se a thread bloqueante já bloqueia outra thread
-    JOIN_PAIR_t *joinPair;
+    JOIN_PAIR_t *joinPair = malloc(sizeof(JOIN_PAIR_t));
     if(FirstFila2(joinQueue) == 0){
         do{
-            joinPair = (JOIN_PAIR_t*) GetAtAntIteratorFila2(joinQueue);
+            joinPair = (JOIN_PAIR_t*) GetAtIteratorFila2(joinQueue);
             if(joinPair == NULL)
                 break;
             if(joinPair->tid_running_thread == tid)
@@ -293,7 +302,7 @@ int waitForThread(int tid){
 
 int waitForResource(csem_t *sem){
     // Thread em execução
-    TCB_t *blockedThread = GetAtAntIteratorFila2(runningQueue);
+    TCB_t *blockedThread = GetAtIteratorFila2(runningQueue);
 
     // Verifica se a thread a ser bloqueada existe
     if(blockedThread == NULL)
