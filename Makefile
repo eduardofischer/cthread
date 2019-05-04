@@ -16,18 +16,19 @@ INC_DIR=./include
 BIN_DIR=./bin
 SRC_DIR=./src
 
-all: regra1 regra2 regran
+all: scheduler thread cthread
+	ar crs $(LIB_DIR)/libcthread.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/support.o
 
-regra1: #dependências para a regra1
-	$(CC) -o $(BIN_DIR)regra1 $(SRC_DIR)regra1.c -Wall
+scheduler:
+	$(CC) -c $(SRC_DIR)/scheduler.c -o $(BIN_DIR)/scheduler.o -Wall
 
-regra2: #dependências para a regra2
-	$(CC) -o $(BIN_DIR)regra2 $(SRC_DIR)regra2.c -Wall
+thread:
+	$(CC) -c $(SRC_DIR)/thread.c -o $(BIN_DIR)/thread.o -Wall
 
-regran: #dependências para a regran
-	$(CC) -o $(BIN_DIR)regran $(SRC_DIR)regran.c -Wall
+cthread:
+	$(CC) -c $(SRC_DIR)/lib.c -o $(BIN_DIR)/lib.o -Wall
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
+	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/init.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
 
 
