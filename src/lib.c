@@ -46,36 +46,79 @@ int ccreate (void* (*start)(void*), void *arg, int prio) {
 // * -1: Erro
 int csetprio(int tid, int prio) {
 	if(prio == HIGH_PRIORITY || prio == MEDIUM_PRIORITY || prio == LOW_PRIORITY){
-		if(setRunningThreadPriority(prio) == 0)
-			return 0;
-		else
-			return -1;
+		return setRunningThreadPriority(prio);
 	} else
 		return -1;
 }
 
+// Função: A thread em execução cede a CPU voluntariamente
+// Retorno:
+// *  0: Sucesso!
+// * -1: Erro
 int cyield(void) {
-	return -1;
+	return yield();
 }
 
+// Função: Bloqueia a thread em execução até o termino da execução de outra thread
+// Retorno:
+// *  0: Sucesso!
+// * -1: Erro
 int cjoin(int tid) {
-	return -1;
+	return waitForThread(tid);
 }
 
+// Função: Inicializa um uma estrutura do tipo semáforo
+// Retorno:
+// *  0: Sucesso!
+// * -1: Erro
 int csem_init(csem_t *sem, int count) {
-	return -1;
+	if(sem != NULL)
+		return -1;
+
+	sem = malloc(sizeof(csem_t*));
+	sem->count = count;
+	sem->fila = initPriorityQueue();
+
+    return 0;
 }
 
+// Função: Solicita o uso do recurso protegido por semáforo, e gerencia uma fila caso o recurso esteja ocupado
+// Retorno:
+// *  0: Sucesso!
+// * -1: Erro
 int cwait(csem_t *sem) {
-	return -1;
+	if(sem == NULL || sem->fila == NULL)
+		return -1;
+	
+	(sem->count)--;
+
+	// Se o recurso não estiver disponível, coloca a thread na fila de espera
+	if(sem->count < 0)
+		return waitForResource(sem);
+
+	return 0;
 }
 
+// Função: Libera um recurso protegido por semáforo
+// Retorno:
+// *  0: Sucesso!
+// * -1: Erro
 int csignal(csem_t *sem) {
-	return -1;
+	if(sem == NULL || sem->fila == NULL)
+		return -1;
+	
+	(sem->count)++;
+
+	// Se o recurso não estiver disponível, coloca a thread na fila de espera
+	if(sem->count < 1)
+		return unlockSemThread(sem);
+
+	return 0;
 }
 
+// Função: Copia para uma área de memória os nomes e números de cartão dos componentes do grupo
 int cidentify (char *name, int size) {
-	strncpy (name, "Sergio Cechin - 2017/1 - Teste de compilacao.", size);
+	strncpy (name, "Eduardo Spitzer Fischer - 00290399\nMaria Flávia Borrajo Tondo - 00278892\nRodrigo Paranhos Bastos - 00261162", size);
 	return 0;
 }
 

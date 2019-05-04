@@ -16,9 +16,6 @@
 #define	PROCST_BLOQ	2		/* Processo em estado bloqueado */
 #define	PROCST_TERMINO	3	/* Processo em estado de terminado */
 
-#define SUCCESS 0
-#define ERROR -1
-
 // Thread Control Block
 typedef struct s_TCB { 
 	int		tid; 		// identificador da thread
