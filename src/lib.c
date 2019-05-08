@@ -7,6 +7,7 @@
 #include "../include/cdata.h"
 #include "../include/thread.h"
 #include "../include/scheduler.h"
+#include "../include/semaphore.h"
 
 // Flag de inicialização da thread main
 int hasInitMainThread = 0;
@@ -77,7 +78,7 @@ int csem_init(csem_t *sem, int count) {
 
 	sem = malloc(sizeof(csem_t*));
 	sem->count = count;
-	sem->fila = initPriorityQueue();
+	sem->fila = initFIFOQueue();
 
     return 0;
 }

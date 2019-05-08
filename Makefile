@@ -16,8 +16,8 @@ INC_DIR=./include
 BIN_DIR=./bin
 SRC_DIR=./src
 
-all: scheduler thread cthread
-	ar crs $(LIB_DIR)/libcthread.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/support.o
+all: scheduler thread cthread semaphore
+	ar crs $(LIB_DIR)/libcthread.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/support.o $(BIN_DIR)/semaphore.o
 
 scheduler:
 	$(CC) -c $(SRC_DIR)/scheduler.c -o $(BIN_DIR)/scheduler.o -Wall
@@ -25,10 +25,15 @@ scheduler:
 thread:
 	$(CC) -c $(SRC_DIR)/thread.c -o $(BIN_DIR)/thread.o -Wall
 
+semaphore:
+	$(CC) -c $(SRC_DIR)/semaphore.c -o $(BIN_DIR)/semaphore.o -Wall
+
 cthread:
 	$(CC) -c $(SRC_DIR)/lib.c -o $(BIN_DIR)/lib.o -Wall
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/init.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
+	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/semaphore.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
+
+
 
 

@@ -18,6 +18,12 @@ FILA2 *joinQueue;
 TCB_t *mainThreadTCB;
 ucontext_t mainThreadContext;
 
+FILA2 *initFIFOQueue(){
+    FILA2 *queue = malloc(sizeof(FILA2*));
+    CreateFila2(queue);
+
+    return queue;
+}
 
 PRIO_QUEUE_t *initPriorityQueue(){
     PRIO_QUEUE_t *queue = malloc(sizeof(PRIO_QUEUE_t));
@@ -31,31 +37,23 @@ PRIO_QUEUE_t *initPriorityQueue(){
     return queue;
 }
 
-int initQueues() {
-    int retStatus = 0;
-
+void initSchedulerQueues() {
     // Priority Queue (Ready)
     readyQueue = initPriorityQueue();
 
     // State Queues
-    runningQueue = malloc(sizeof(FILA2*));
-    retStatus -= CreateFila2(runningQueue);
-    blockedQueue = malloc(sizeof(FILA2*));
-    retStatus -= CreateFila2(blockedQueue);
-    finishedQueue = malloc(sizeof(FILA2*));
-    retStatus -= CreateFila2(finishedQueue);
+    runningQueue = initFIFOQueue();
+    blockedQueue = initFIFOQueue();
+    finishedQueue = initFIFOQueue();
 
     // Join Pair Queue
-    joinQueue = malloc(sizeof(FILA2*));
-    retStatus -= CreateFila2(joinQueue);
-
-    return retStatus;
+    joinQueue = initFIFOQueue();
 }
 
 int initMainThread() {
     mainThreadTCB = malloc(sizeof(TCB_t));
 
-    initQueues();
+    initSchedulerQueues();
 
     getcontext(&mainThreadContext);
     mainThreadTCB = createThread(mainThreadContext, LOW_PRIORITY);
@@ -69,18 +67,18 @@ int initMainThread() {
     }
 }
 
-int insertPriorityQueue(PRIO_QUEUE_t *queue, TCB_t *thread){
+int insertReadyQueue(TCB_t *thread){
     thread->state = PROCST_APTO;
 
     switch(thread->prio) {
         case HIGH_PRIORITY:
-            AppendFila2(queue->high, thread);
+            AppendFila2(readyQueue->high, thread);
             break;
         case MEDIUM_PRIORITY:
-            AppendFila2(queue->medium, thread);
+            AppendFila2(readyQueue->medium, thread);
             break;
         case LOW_PRIORITY:
-            AppendFila2(queue->low, thread);
+            AppendFila2(readyQueue->low, thread);
             break;
         default:
             return -1;
@@ -89,14 +87,18 @@ int insertPriorityQueue(PRIO_QUEUE_t *queue, TCB_t *thread){
     return 0;
 }
 
-int insertReadyQueue(TCB_t *thread){
-    return insertPriorityQueue(readyQueue, thread);
-}
-
 void runThread(TCB_t *thread) {
     thread->state = PROCST_EXEC;
     AppendFila2(runningQueue, thread);
     setcontext(&(thread->context));
+}
+
+TCB_t *getRunningThread(){
+    TCB_t *thread = malloc(sizeof(TCB_t));
+    FirstFila2(runningQueue);
+    thread = GetAtIteratorFila2(runningQueue);
+
+    return thread;
 }
 
 TCB_t *popPriorityThread(PRIO_QUEUE_t *queue){
@@ -299,31 +301,3 @@ int waitForThread(int tid){
     blockThread();
     return 0;
 }
-
-int waitForResource(csem_t *sem){
-    // Thread em execução
-    TCB_t *blockedThread = GetAtIteratorFila2(runningQueue);
-
-    // Verifica se a thread a ser bloqueada existe
-    if(blockedThread == NULL)
-        return -1;
-
-    // Verifica se o semáforo existe
-    if(sem == NULL || sem->fila == NULL)
-        return -1;
- 
-    // Adiciona à fila do semáforo
-    insertPriorityQueue(sem->fila, blockedThread);
-
-    blockThread();
-    return 0;
-}
-
-int unlockSemThread(csem_t *sem){
-    TCB_t *thread = malloc(sizeof(TCB_t));
-    thread = popPriorityThread(sem->fila);
-    return unlockThread(thread->tid);
-}
-
-
-
