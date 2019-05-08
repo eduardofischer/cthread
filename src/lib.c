@@ -74,9 +74,8 @@ int cjoin(int tid) {
 // * -1: Erro
 int csem_init(csem_t *sem, int count) {
 	if(sem != NULL)
-		return -1;
+		sem = malloc(sizeof(csem_t*));
 
-	sem = malloc(sizeof(csem_t*));
 	sem->count = count;
 	sem->fila = initFIFOQueue();
 
