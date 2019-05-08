@@ -19,7 +19,7 @@ TCB_t *mainThreadTCB;
 ucontext_t mainThreadContext;
 
 FILA2 *initFIFOQueue(){
-    FILA2 *queue = malloc(sizeof(FILA2*));
+    FILA2 *queue = malloc(sizeof(FILA2)); // teste: FILA2 *queue = malloc(sizeof(FILA2*));
     CreateFila2(queue);
 
     return queue;
@@ -27,12 +27,9 @@ FILA2 *initFIFOQueue(){
 
 PRIO_QUEUE_t *initPriorityQueue(){
     PRIO_QUEUE_t *queue = malloc(sizeof(PRIO_QUEUE_t));
-    queue->high = malloc(sizeof(FILA2*));
-    CreateFila2(queue->high);
-    queue->medium = malloc(sizeof(FILA2*));
-    CreateFila2(queue->medium);
-    queue->low = malloc(sizeof(FILA2*));
-    CreateFila2(queue->low);
+    queue->high = initFIFOQueue();
+    queue->medium = initFIFOQueue();
+    queue->low = initFIFOQueue();
 
     return queue;
 }
@@ -133,18 +130,42 @@ int scheduleNewThread() {
 
 int blockThread(){
     // Identifica a thread que está em execução
-    TCB_t *thread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
-    thread = GetAtIteratorFila2(runningQueue);
+    TCB_t *thread = getRunningThread();
 
     if(thread == NULL)
         return -1;
 
+    FirstFila2(runningQueue);
     DeleteAtIteratorFila2(runningQueue);
+    // Salva o contexto de execução da thread
     getcontext(&(thread->context));
     thread->state = PROCST_BLOQ;
     AppendFila2(blockedQueue, thread);
-    scheduleNewThread();
+    
+    return scheduleNewThread();
+}
+
+int yield(){
+    // Identifica a thread que está em execução
+    TCB_t *thread = getRunningThread();
+    int hasYielded = 0;
+
+    if(thread == NULL)
+        return -1;
+
+    FirstFila2(runningQueue);
+    DeleteAtIteratorFila2(runningQueue);
+    // Salva o contexto de execução da thread
+    getcontext(&(thread->context));
+
+    if(hasYielded == 0){
+        hasYielded = 1;
+        thread->state = PROCST_APTO;
+        insertReadyQueue(thread);
+        // Chama o escalonador para executar outra thread
+        scheduleNewThread();
+    }
+
     return 0;
 }
 
@@ -170,10 +191,10 @@ int unlockThread(int tid) {
 
 void killThread() {
     // Identifica a thread que está em execução
-    TCB_t *thread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
-    thread = (TCB_t*) GetAtIteratorFila2(runningQueue);
+    TCB_t *thread = getRunningThread();
+
     // Remove a thread da fila "executando"
+    FirstFila2(runningQueue);
     DeleteAtIteratorFila2(runningQueue);
     // Atualiza o estado da thread
     thread->state = PROCST_TERMINO;
@@ -196,34 +217,13 @@ void killThread() {
 }
 
 int setRunningThreadPriority(int prio){
-    TCB_t *thread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
-    thread = GetAtIteratorFila2(runningQueue);
+    TCB_t *thread = getRunningThread();
 
     if(thread == NULL)
         return -1;
 
     thread->prio = prio;
     return 0;
-}
-
-int yield(){
-    TCB_t *thread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
-    thread = GetAtIteratorFila2(runningQueue);
-
-    if(thread == NULL)
-        return -1;
-
-    // Salva o contexto de execução da thread
-    getcontext(&(thread->context));
-
-    // Troca a fila da thread (executando -> apto)
-    DeleteAtIteratorFila2(runningQueue);
-    insertReadyQueue(thread);
-
-    // Chama o escalonador para executar outra thread
-    return scheduleNewThread();
 }
 
 TCB_t *findReadyThreadByTID(int tid){
@@ -270,9 +270,7 @@ TCB_t *findReadyThreadByTID(int tid){
 
 int waitForThread(int tid){
     // Thread em execução
-    TCB_t *blockedThread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
-    blockedThread = GetAtIteratorFila2(runningQueue);
+    TCB_t *blockedThread = getRunningThread();
 
     // Verifica se a thread a ser bloqueada existe
     if(blockedThread == NULL)
