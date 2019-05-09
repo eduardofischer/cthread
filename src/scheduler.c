@@ -19,7 +19,7 @@ TCB_t *mainThreadTCB;
 ucontext_t mainThreadContext;
 
 FILA2 *initFIFOQueue(){
-    FILA2 *queue = malloc(sizeof(FILA2)); // teste: FILA2 *queue = malloc(sizeof(FILA2*));
+    FILA2 *queue = malloc(sizeof(FILA2));
     CreateFila2(queue);
 
     return queue;
@@ -131,6 +131,7 @@ int scheduleNewThread() {
 int blockThread(){
     // Identifica a thread que está em execução
     TCB_t *thread = getRunningThread();
+    int hasBeenBlocked = 0;
 
     if(thread == NULL)
         return -1;
@@ -139,10 +140,15 @@ int blockThread(){
     DeleteAtIteratorFila2(runningQueue);
     // Salva o contexto de execução da thread
     getcontext(&(thread->context));
-    thread->state = PROCST_BLOQ;
-    AppendFila2(blockedQueue, thread);
-    
-    return scheduleNewThread();
+
+    if(hasBeenBlocked == 0){
+        hasBeenBlocked = 1;
+        thread->state = PROCST_BLOQ;
+        AppendFila2(blockedQueue, thread);
+        scheduleNewThread();
+    }
+
+    return 0;
 }
 
 int yield(){
@@ -270,15 +276,15 @@ TCB_t *findReadyThreadByTID(int tid){
 
 int waitForThread(int tid){
     // Thread em execução
-    TCB_t *blockedThread = getRunningThread();
+    TCB_t *thread = getRunningThread();
 
     // Verifica se a thread a ser bloqueada existe
-    if(blockedThread == NULL)
+    if(thread == NULL)
         return -1;
 
     // Verifica se a thread bloqueante existe
     if(findReadyThreadByTID(tid) == NULL)
-        return -1;
+        return -2;
 
     // Verifica se a thread bloqueante já bloqueia outra thread
     JOIN_PAIR_t *joinPair = malloc(sizeof(JOIN_PAIR_t));
@@ -288,11 +294,11 @@ int waitForThread(int tid){
             if(joinPair == NULL)
                 break;
             if(joinPair->tid_running_thread == tid)
-                return -1;
+                return -3;
         }while(NextFila2(joinQueue) == 0);
     }
 
-    joinPair->tid_blocked_thread = blockedThread->tid;
+    joinPair->tid_blocked_thread = thread->tid;
     joinPair->tid_running_thread = tid;
     AppendFila2(joinQueue, joinPair);
 

@@ -15,20 +15,20 @@ int waitForResource(csem_t *sem){
 
     // Verifica se o semáforo existe
     if(sem == NULL || sem->fila == NULL)
-        return -1;
+        return -2;
  
     // Adiciona à fila do semáforo
-    AppendFila2(sem->fila, thread);
+    AppendFila2(sem->fila, &(thread->tid));
 
     blockThread();
     return 0;
 }
 
 int unlockSemThread(csem_t *sem){
-    TCB_t *thread = malloc(sizeof(TCB_t));
+    int *tid = malloc(sizeof(int));
     FirstFila2(sem->fila);
-    thread = GetAtIteratorFila2(sem->fila);
+    tid = GetAtIteratorFila2(sem->fila);
     DeleteAtIteratorFila2(sem->fila);
 
-    return unlockThread(thread->tid);
+    return unlockThread(*tid);
 }

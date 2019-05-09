@@ -73,6 +73,14 @@ int cjoin(int tid) {
 // *  0: Sucesso!
 // * -1: Erro
 int csem_init(csem_t *sem, int count) {
+	// Inicializa a thread main caso ainda não tenha sido inicializada
+	if(!hasInitMainThread){
+		if(initMainThread() == 0)
+			hasInitMainThread = 1;
+		else
+			return -2;
+	}
+
 	if(sem == NULL)
 		return -1;
 
