@@ -17,6 +17,7 @@ BIN_DIR=./bin
 SRC_DIR=./src
 
 all: scheduler thread cthread semaphore
+	mkdir -p lib
 	ar crs $(LIB_DIR)/libcthread.a $(BIN_DIR)/scheduler.o $(BIN_DIR)/thread.o $(BIN_DIR)/lib.o $(BIN_DIR)/support.o $(BIN_DIR)/semaphore.o
 
 scheduler:
