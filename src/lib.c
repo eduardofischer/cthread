@@ -45,7 +45,15 @@ int ccreate (void* (*start)(void*), void *arg, int prio) {
 // Retorno:
 // *  0: Sucesso!
 // * -1: Erro
+// * -2: Erro ao criar a thread main
 int csetprio(int tid, int prio) {
+	// Inicializa a thread main caso ainda não tenha sido inicializada
+	if(!hasInitMainThread){
+		if(initMainThread() == 0)
+			hasInitMainThread = 1;
+		else
+			return -2;
+	}
 	if(prio == HIGH_PRIORITY || prio == MEDIUM_PRIORITY || prio == LOW_PRIORITY){
 		return setRunningThreadPriority(prio);
 	} else
@@ -57,6 +65,13 @@ int csetprio(int tid, int prio) {
 // *  0: Sucesso!
 // * -1: Erro
 int cyield(void) {
+	// Inicializa a thread main caso ainda não tenha sido inicializada
+	if(!hasInitMainThread){
+		if(initMainThread() == 0)
+			hasInitMainThread = 1;
+		else
+			return -2;
+	}
 	return yield();
 }
 
@@ -64,7 +79,17 @@ int cyield(void) {
 // Retorno:
 // *  0: Sucesso!
 // * -1: Erro
+// * -2: Erro ao criar a thread main
+// * -3: Erro: a thread bloqueante não existe
+// * -4: Erro: a thread bloqueante já bloqueia outra thread
 int cjoin(int tid) {
+	// Inicializa a thread main caso ainda não tenha sido inicializada
+	if(!hasInitMainThread){
+		if(initMainThread() == 0)
+			hasInitMainThread = 1;
+		else
+			return -2;
+	}
 	return waitForThread(tid);
 }
 
@@ -72,6 +97,8 @@ int cjoin(int tid) {
 // Retorno:
 // *  0: Sucesso!
 // * -1: Erro
+// * -2: Erro ao criar a thread main
+// * -3: Semáforo inválido
 int csem_init(csem_t *sem, int count) {
 	// Inicializa a thread main caso ainda não tenha sido inicializada
 	if(!hasInitMainThread){
@@ -82,7 +109,7 @@ int csem_init(csem_t *sem, int count) {
 	}
 
 	if(sem == NULL)
-		return -1;
+		return -3;
 
 	sem->count = count;
 	sem->fila = initFIFOQueue();
@@ -125,6 +152,7 @@ int csignal(csem_t *sem) {
 }
 
 // Função: Copia para uma área de memória os nomes e números de cartão dos componentes do grupo
+// *  0: Sucesso!
 int cidentify (char *name, int size) {
 	strncpy (name, "Eduardo Spitzer Fischer - 00290399\nMaria Flávia Borrajo Tondo - 00278892\nRodrigo Paranhos Bastos - 00261162", size);
 	return 0;

@@ -92,7 +92,9 @@ void runThread(TCB_t *thread) {
 
 TCB_t *getRunningThread(){
     TCB_t *thread = malloc(sizeof(TCB_t));
-    FirstFila2(runningQueue);
+    if(FirstFila2(runningQueue) != 0)
+        return NULL;
+
     thread = GetAtIteratorFila2(runningQueue);
 
     return thread;
@@ -284,7 +286,7 @@ int waitForThread(int tid){
 
     // Verifica se a thread bloqueante existe
     if(findReadyThreadByTID(tid) == NULL)
-        return -2;
+        return -3;
 
     // Verifica se a thread bloqueante já bloqueia outra thread
     JOIN_PAIR_t *joinPair = malloc(sizeof(JOIN_PAIR_t));
@@ -294,7 +296,7 @@ int waitForThread(int tid){
             if(joinPair == NULL)
                 break;
             if(joinPair->tid_running_thread == tid)
-                return -3;
+                return -4;
         }while(NextFila2(joinQueue) == 0);
     }
 

@@ -1,7 +1,7 @@
-
 #include "../include/cthread.h"
 #include <stdio.h>
 
+int tid1, tid2, tid3, tid4;
 
 void* func1(void *arg) {
 	printf("[tid1]	======== Inicio da func1 ========\n");
@@ -30,6 +30,9 @@ void* func2(void *arg) {
 
 	printf("[tid2]	Chamando cyield()\n");
 	printf("[tid2]	cyield return: %d\n", cyield());
+
+	printf("[tid2]	Chamando cjoin(tid3)\n");
+	printf("[tid2]	cjoin tid3 return: %d\n", cjoin(tid3));
 
 	printf("[tid2]	======== Fim da func2 ========\n");
 }
@@ -60,10 +63,18 @@ void* func4(void *arg) {
 int main(int argc, char *argv[]) {
 	int i = 99;
 
-	int tid1, tid2, tid3, tid4;
-
 	printf("\n[main]	================ Inicio da main ================\n");
 
+	printf("[main]	Executando \n");
+
+	printf("[main]	Chamando cjoin(tid1)\n");
+	printf("[main]	cjoin tid1 return: %d\n", cjoin(tid1));
+	printf("[main]	Executando \n");
+	printf("[main]	Chamando cjoin(0)\n");
+	printf("[main]	cjoin 0 return: %d\n", cjoin(0));
+	printf("[main]	Executando \n");
+	printf("[main]	Chamando cyield()\n");
+	printf("[main]	cyield return: %d\n", cyield());
 	printf("[main]	Executando \n");
 
 	printf("[main]	Criando thread: tid1 c/ prioridade 2\n");
@@ -77,6 +88,15 @@ int main(int argc, char *argv[]) {
 	printf("[main]	Criando thread: tid3 c/ prioridade 1\n");
 	tid3 = ccreate(func3, (void *)&i, 1);
 	printf("[main]	ccreate func3 return: %d\n", tid3);
+
+	printf("[main]	Executando \n");
+
+	printf("[main]	Chamando cjoin(0)\n");
+	printf("[main]	cjoin 0 return: %d\n", cjoin(0));
+	printf("[main]	Executando \n");
+	printf("[main]	Chamando cyield()\n");
+	printf("[main]	cyield return: %d\n", cyield());
+	printf("[main]	Executando \n");
 
 	printf("[main]	Executando \n");
 
